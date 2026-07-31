@@ -31,4 +31,20 @@ def get_pr_diff(owner: str, repo: str, pr_number: int) -> dict:
     files_resp.raise_for_status()
     files_data = files_resp.json()
 
+    changed_files = []
+    for f in files_data:
+        changed_files.append({
+            "filename":f.get("filename"),
+            "status":f.get("status"),
+            "additions":f.get("additions"),
+            "deletions": f.get("deletions"),
+            "patch": f.get("patch", ""),
+        })
+
+    return {
+        "title": pr_data.get("title"),
+        "author": pr_data.get("user",{}).get("login"),
+        "base_branch":  pr_data.get("base",{}).get("ref"),
+        "changed_files": changed_files,
+    }
 
