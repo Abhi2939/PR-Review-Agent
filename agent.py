@@ -3,8 +3,8 @@ import os
 from dotenv import load_dotenv
 from smolagents import CodeAgent,LiteLLMModel,tool
 
-from server import get_pr_diff as get_pr_diff
-from server import run_linter as run_linter
+from server import get_pr_diff
+from server import run_linter
 
 load_dotenv()
 
