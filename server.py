@@ -60,7 +60,7 @@ def run_linter(code: str,filename: str = "snippet.py") -> dict:
 
     try:
         result = subprocess.run(
-            ["ruff","check","--output-fromat=json",tmp_path],
+            ["ruff","check","--output-format=json",tmp_path],
             capture_output=True,
             text=True,
             timeout=15,
@@ -74,7 +74,7 @@ def run_linter(code: str,filename: str = "snippet.py") -> dict:
                 "code":issue["code"],
                 "message":issue["message"],
             }
-            for issue in issues 
+            for issue in raw_issues 
         ]
         return {"issue_count":len(issues),"issues":issues}
     finally:
