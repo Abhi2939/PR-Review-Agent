@@ -4,8 +4,8 @@ import argparse
 from dotenv import load_dotenv
 from smolagents import CodeAgent,LiteLLMModel,tool
 
-from server import get_pr_diff
-from server import run_linter
+from server import get_pr_diff as _get_pr_diff
+from server import run_linter as _run_linter
 
 load_dotenv()
 
@@ -20,7 +20,7 @@ def get_pr_diff(owner: str,repo: str,pr_number: int) -> dict:
         pr_number: the pull request number, e.g. 6432
     """
 
-    return get_pr_diff(owner,repo,pr_number)
+    return _get_pr_diff(owner,repo,pr_number)
 
 @tool
 def run_linter(code: str,filename: str = "snippet.py") -> dict:
@@ -32,7 +32,7 @@ def run_linter(code: str,filename: str = "snippet.py") -> dict:
         filename: filename for context, e.g. "utils.py"
     """
 
-    return run_linter(code,filename)
+    return _run_linter(code,filename)
 
 def build_agent() -> CodeAgent:
     model = LiteLLMModel(
@@ -40,13 +40,16 @@ def build_agent() -> CodeAgent:
         api_key=os.environ.get("GROQ_API_KEY"),
     )
 
-    return CodeAgent(tools=[get_pr_diff,run_linter],model = model)
+    return CodeAgent(tools=[get_pr_diff,run_linter],
+                     model = model,
+                     additional_authorized_imports=["json"],
+                     )
 
 def main():
 
     parser = argparse.ArgumentParser(description="Review a GitHub PR with an agent")
     parser.add_argument("--owner",required=True)
-    parser.add_argument("--epo",required=True)
+    parser.add_argument("--repo",required=True)
     parser.add_argument("--pr",required=True)
 
     args = parser.parse_args()
