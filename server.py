@@ -1,4 +1,7 @@
 import os 
+import subprocess
+import tempfile
+import json
 
 from fastmcp import FastMCP
 from dotenv import load_dotenv
@@ -48,3 +51,35 @@ def get_pr_diff(owner: str, repo: str, pr_number: int) -> dict:
         "changed_files": changed_files,
     }
 
+@mcp.tool()
+def run_linter(code: str,filename: str = "snippet.py") -> dict:
+
+    with tempfile.NamedTemporaryFile(mode="w",suffix=".py",delete=False) as tmp:
+        tmp.write(code)
+        tmp_path = tmp.name
+
+    try:
+        result = subprocess.run(
+            ["ruff","check","--output-fromat=json",tmp_path],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+        raw_issues = json.loads(result.stdout) if result.stdout.strip() else []
+
+        issues = [
+            {
+                "line":issue["location"]["row"],
+                "column":issue["location"]["column"],
+                "code":issue["code"],
+                "message":issue["message"],
+            }
+            for issue in issues 
+        ]
+        return {"issue_count":len(issues),"issues":issues}
+    finally:
+        os.unlink(tmp_path)
+
+
+if __name__ == "__main__":
+    mcp.run()
